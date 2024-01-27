@@ -5,7 +5,8 @@ import time
 
 i2c = machine.SoftI2C(scl=machine.Pin(5), sda=machine.Pin(4))
 
-yellow_LED = machine.Pin(15, machine.Pin.OUT)
+yellow_LED = Pin(15, Pin.OUT)
+yellow_LED.low()
 green_LED = machine.Pin(14, machine.Pin.OUT)
 
 oled_width = 128
@@ -24,6 +25,15 @@ cycle_time = 5
 fridgeTemps = []
 freezerTemps = []
 
+tempFreezer = -1
+tempFridge = -1
+
+freezerMaxAlarm = 77
+
+fridgeMaxAlarm = 80
+fridgeMinAlarm =77
+
+
 # Fridge sensor setup
 Fridge_pin = machine.Pin(16, machine.Pin.IN)
 Fridge_sensor = ds18x20.DS18X20(onewire.OneWire(Fridge_pin))
@@ -38,6 +48,9 @@ print('Found Freezer DS devices: ', freezr_roms)
 
 while True:
     oled.fill(0)
+    green_LED.high()
+    time.sleep_ms(125)
+    green_LED.low()
     if min_max_switch == 0:
         min_max_switch = 1
     else:
@@ -45,14 +58,17 @@ while True:
     try:
         Fridge_sensor.convert_temp()
         time.sleep_ms(750)
-        yellow_LED.high()
-        green_LED.high()
+
         for rom in fridge_roms:
             tempC = Fridge_sensor.read_temp(rom)
-            tempF = (9/5)*tempC + 32
-            tempF = round(tempF,1)
-            fridgeTemps.append(tempF)
-            FgText = f"Fridge: {tempF:.1f} F"
+            tempFridge = (9/5)*tempC + 32
+            tempFridge = round(tempFridge,1)
+            fridgeTemps.append(tempFridge)
+            fridgeMin = min(fridgeTemps)
+            fridgeMin = int(fridgeMin)
+            fridgeMax = max(fridgeTemps)
+            fridgeMax = int(fridgeMax)
+            FgText = f"Fridge: {tempFridge:.1f} F"
             print(FgText)
             
     except Exception as error:
@@ -62,14 +78,17 @@ while True:
     try:
         Freezr_sensor.convert_temp()
         time.sleep_ms(750)
-        yellow_LED.high()
-        green_LED.high()
+
         for rom in freezr_roms:
             tempC = Freezr_sensor.read_temp(rom)
-            tempF = (9/5)*tempC + 32
-            tempF = round(tempF,1)
-            freezerTemps.append(tempF)
-            FzText = f"Freezr: {tempF:.1f} F"
+            tempFreezer = (9/5)*tempC + 32
+            tempFreezer = round(tempFreezer,1)
+            freezerTemps.append(tempFreezer)
+            freezeMin = min(freezerTemps)
+            freezeMax = max(freezerTemps)
+            freezeMin = int(freezeMin)
+            freezeMax = int(freezeMax)
+            FzText = f"Freezr: {tempFreezer:.1f} F"
             print(FzText)
             
     except Exception as error:
@@ -77,10 +96,11 @@ while True:
         FzText = "Freezr: No Conn"
     try:
     
-        min_max_Fridge = "Fdg: min62 max87"
-        min_max_Freezer = "Frz: min28 max 58"
-    except:
+        min_max_Fridge ="Fdg:mn" + str(fridgeMin)+" mx"+str(fridgeMax)
+        min_max_Freezer = "Fzr:mn" + str(freezeMin)+" mx"+str(freezeMax)
+    except Exception as error:
         min_max_text = "Data Error 1"
+        print(error)
     if min_max_switch == 0:
         min_max_text = min_max_Fridge
     elif min_max_switch == 1:
@@ -92,5 +112,11 @@ while True:
     oled.text(min_max_text, 0, 20)
     oled.show()
     time.sleep(cycle_time)
+    if tempFreezer > freezerMaxAlarm or tempFridge > fridgeMaxAlarm or tempFridge < fridgeMinAlarm:
+        print("alarm")
+        yellow_LED.high()
+    else:
+        yellow_LED.low()
+        
 
 
