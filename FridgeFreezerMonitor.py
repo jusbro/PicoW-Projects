@@ -19,17 +19,27 @@ oled.text('Hello, World!', 0, 0)
 oled.show()
 
 min_max_switch = 0
+#time, in minutes, between each iteration of the main loop
+cycle_time = 1
 
-cycle_time = 5
+#variables to keep track of highest and lowest termperatures
+maxTempFreezer = -1
+maxTempFridge = -1
+minTempFreezer = -1
+minTempFridge = -1
 
+#Old method for keeping track of min/max temps. Will be removed in next stable version
 fridgeTemps = []
 freezerTemps = []
 
+#variables to store volatile temperature sensor readings. Rewritten each iteration of loop
 tempFreezer = -1
 tempFridge = -1
 
+#temperature at which the alarm will trigger if the freezer becomes warmer than
 freezerMaxAlarm = 77
 
+#Sets temperature range for the fridge alarm
 fridgeMaxAlarm = 80
 fridgeMinAlarm =77
 
