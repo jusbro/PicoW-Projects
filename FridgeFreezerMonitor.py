@@ -21,8 +21,8 @@ oled.text('Updated 2/4/24', 0, 10)
 oled.show()
 
 min_max_switch = 0
-#time, in minutes, between each iteration of the main loop
-cycle_time = 1
+#time, in seconds, between each iteration of the main loop
+cycle_time = 60
 
 #variables to keep track of highest and lowest termperatures
 maxTempFreezer = -1
